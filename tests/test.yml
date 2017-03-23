@@ -2,4 +2,4 @@
 - hosts: remote
   roles:
   - { role: kurron.jdk }
-  - { role: ../../ansible-role-logstash, elastic_elasticsearch_host: search-phoenix-i43nf624oy3q6kba3zomjljrwq.us-west-2.es.amazonaws.com, elastic_elasticsearch_port: 80 }
+  - { role: ../../ansible-role-logstash, elastic_elasticsearch_host: search-foo.us-west-2.es.amazonaws.com, elastic_elasticsearch_port: 80 }
