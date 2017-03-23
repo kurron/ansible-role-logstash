@@ -45,6 +45,9 @@ logger --server 192.168.1.78 --port 5514 --priority 0  --tag test 'Hello, Syslog
 
 echo '{"version": "1.1","host":"example.org","short_message":"Hello, GELF!","full_message":"More details","level":1,"_user_id":9001,"_some_info":"foo","_some_env_var":"bar"}' | gzip | nc --udp --wait 1 192.168.1.78 12201
 ```
+
+The configurations for the different inputs are located in `/etc/logstash/conf.d`.  Add/modify as needed.
+
 License
 -------
 
