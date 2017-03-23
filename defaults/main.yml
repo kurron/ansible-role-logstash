@@ -1,16 +1,8 @@
 ---
-elastic_elasticsearch_install: true
-elastic_elasticsearch_cluster_name: development
-elastic_elasticsearch_node_name: development
-elastic_kibana_install: true
 elastic_logstash_install: true
 elastic_logstash_syslog_port: 5514
+elastic_logstash_syslog_time_zone: UTC
 elastic_logstash_gelf_port: 12201
-elastic_packetbeat_install: false
-elastic_packetbeat_elasticsearch_host: 10.0.2.118
-elastic_metricbeat_install: false
-elastic_metricbeat_elasticsearch_host: 10.0.2.118
-elastic_filebeat_install: false
-elastic_filebeat_elasticsearch_host: 10.0.2.118
-elastic_x_pack_install: false
+elastic_elasticsearch_host: chamge.me.example.com
+elastic_elasticsearch_port: 9120
 elastic_stack_version: 5.x

@@ -3,12 +3,12 @@ input {
         type => "syslog"
         port => {{ elastic_logstash_syslog_port }}
         id => "syslog"
-        timezone => "{{ ansible_date_time.tz }}"
+        timezone => "{{ elastic_logstash_syslog_time_zone }}"
     }
 }
 
 output {
     elasticsearch {
-        hosts => ["{{ ansible_host }}"]
+        hosts => ["{{ elastic_elasticsearch_host }}:{{ elastic_elasticsearch_port }}"]
     }
 }

@@ -1,6 +1,6 @@
 galaxy_info:
   author: Ronald D. Kurr
-  description: Elastic Stack, aka ELK stack.
+  description: Logstash portion of the Elastic Stack, aka ELK stack.
   company: jvmguy.com
 
   license: Apache 2
@@ -32,10 +32,7 @@ galaxy_info:
 
   galaxy_tags:
       - elk
-      - elasticsearch
       - logstash
-      - kibana
-      - beats
 
 dependencies:
     - { role: kurron.jdk }

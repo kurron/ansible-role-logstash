@@ -1,7 +1,7 @@
 Role Name
 =========
 
-The Elastic Stack, aka ELK.
+The Logstash portion of the Elastic Stack, aka ELK.
 
 Requirements
 ------------
@@ -11,21 +11,7 @@ TODO
 Role Variables
 --------------
 
-* elastic_elasticsearch_install: true
-* elastic_elasticsearch_cluster_name: development
-* elastic_elasticsearch_node_name: development
-* elastic_kibana_install: true
-* elastic_logstash_install: true
-* elastic_logstash_syslog_port: 5514
-* elastic_logstash_gelf_port: 12201
-* elastic_packetbeat_install: false
-* elastic_packetbeat_elasticsearch_host: 10.0.2.15
-* elastic_metricbeat_install: false
-* elastic_metricbeat_elasticsearch_host: 10.0.2.15
-* elastic_filebeat_install: false
-* elastic_filebeat_elasticsearch_host: 10.0.2.15
-* elastic_x_pack_install: false
-* elastic_stack_version: 5.x
+TODO
 
 Dependencies
 ------------
@@ -38,8 +24,10 @@ Example Playbook
 ```
 - hosts: servers
   roles:
-      - { role: kurron.elastic-stack, elastic_logstash_syslog_port: 514 }
+      - { role: kurron.logstash }
 ```
+
+UPDATE!!!!
 
 By default, the role installs Elasticsearch, Logstash and Kibana to the same host.
 Logstash is configured to accept `syslog` messages at a custom port of `5514`.
