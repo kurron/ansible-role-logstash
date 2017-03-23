@@ -1,0 +1,13 @@
+input {
+    gelf {
+        type => "gelf"
+        port => {{ elastic_logstash_gelf_port }}
+        id => "gelf"
+    }
+}
+
+output {
+    elasticsearch {
+        hosts => ["{{ ansible_host }}"]
+    }
+}

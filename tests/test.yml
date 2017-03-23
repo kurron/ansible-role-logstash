@@ -1,0 +1,5 @@
+---
+- hosts: remote
+  roles:
+  - { role: kurron.jdk, tags: ["elasticsearch"] }
+  - role: ../../ansible-role-elastic-stack

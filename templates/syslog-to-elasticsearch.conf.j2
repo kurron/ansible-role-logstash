@@ -1,0 +1,14 @@
+input {
+    syslog {
+        type => "syslog"
+        port => {{ elastic_logstash_syslog_port }}
+        id => "syslog"
+        timezone => "{{ ansible_date_time.tz }}"
+    }
+}
+
+output {
+    elasticsearch {
+        hosts => ["{{ ansible_host }}"]
+    }
+}

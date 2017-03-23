@@ -1,0 +1,437 @@
+---
+- name: Install Elasticsearch Key
+  become: yes
+  apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present
+  when: (ansible_distribution == "Ubuntu")
+  tags:
+      - elasticsearch
+      - kibana
+      - logstash
+      - filebeat
+      - metricbeat
+      - packetbeat
+
+- name: Install Elasticsearch Repository
+  become: yes
+  apt_repository:
+      repo: "deb https://artifacts.elastic.co/packages/{{ elastic_stack_version }}/apt stable main"
+      state: present
+  when: (ansible_distribution == "Ubuntu")
+  tags:
+      - elasticsearch
+      - kibana
+      - logstash
+      - filebeat
+      - metricbeat
+      - packetbeat
+
+- name: Install Elasticsearch Repository
+  become: yes
+  yum_repository:
+      name: "elastic-{{ elastic_stack_version }}"
+      description: Elastic Package Repository
+      baseurl: "https://artifacts.elastic.co/packages/{{ elastic_stack_version }}/yum"
+      gpgcheck: yes
+      gpgkey: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+      state: present
+  when: (ansible_distribution == "RedHat")
+  tags:
+      - elasticsearch
+      - kibana
+      - logstash
+      - filebeat
+      - metricbeat
+      - packetbeat
+
+- name: Install Elasticsearch
+  become: yes
+  apt:
+      name: elasticsearch
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_elasticsearch_install)
+  tags:
+      - elasticsearch
+
+- name: Install Elasticsearch
+  become: yes
+  yum:
+      name: elasticsearch
+      state: present
+      update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_elasticsearch_install)
+  tags:
+      - elasticsearch
+
+- name: Adjust Elasticsearch Launch Configuration
+  become: yes
+  lineinfile:
+      dest: /etc/default/elasticsearch
+      regexp: '^#JAVA_HOME='
+      line: "JAVA_HOME={{ jdk_global_jdk_directory }}"
+      state: present
+  when: (ansible_distribution == "Ubuntu") and (elastic_elasticsearch_install)
+  tags:
+      - elasticsearch
+
+- name: Adjust Elasticsearch Launch Configuration
+  become: yes
+  lineinfile:
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#JAVA_HOME='
+      line: "JAVA_HOME={{ jdk_global_jdk_directory }}"
+      state: present
+  when: (ansible_distribution == "RedHat") and (elastic_elasticsearch_install)
+  tags:
+      - elasticsearch
+
+# Not sure how stable the interface is but works with my Vagrant boxes
+- name: Install Customized Elasticsearch Configuration
+  become: yes
+  template:
+      src: templates/elasticsearch.yml.j2
+      dest: /etc/elasticsearch/elasticsearch.yml
+      mode: 0644
+      backup: yes
+  when: elastic_elasticsearch_install
+  tags:
+      - elasticsearch
+
+- name: Enable Elasticsearch
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable elasticsearch.service
+  when: elastic_elasticsearch_install
+  tags:
+      - elasticsearch
+
+- name: Start Elasticsearch
+  become: yes
+  command: systemctl restart elasticsearch.service
+  when: elastic_elasticsearch_install
+  tags:
+      - elasticsearch
+
+- name: Give Elasticsearch A Second To Fully Start Up
+  become: no
+  pause:
+      seconds: 5
+  when: false
+  tags:
+      - elasticsearch
+
+# Not working for some reason
+- name: Test Elasticsearch
+  become: no
+  uri:
+      url: "http://{{ ansible_host }}:9200/?pretty"
+  when: false
+  tags:
+      - elasticsearch
+
+- name: Install Kibana
+  become: yes
+  apt:
+      name: kibana
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_kibana_install)
+  tags:
+      - kibana
+
+- name: Install Kibana
+  become: yes
+  apt:
+      name: kibana
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_kibana_install)
+  tags:
+      - kibana
+
+- name: Install Kibana
+  become: yes
+  yum:
+      name: kibana
+      state: present
+      update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_kibana_install)
+  tags:
+      - kibana
+
+# Not sure how stable the interface is but works with my Vagrant boxes
+- name: Install Custom Kibana Configuration
+  become: yes
+  template:
+      src: templates/kibana.yml.j2
+      dest: /etc/kibana/kibana.yml
+      mode: 0644
+      backup: yes
+  when: elastic_kibana_install
+  tags:
+      - kibana
+
+- name: Enable Kibana
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable kibana.service
+  when: elastic_kibana_install
+  tags:
+      - kibana
+
+- name: Start Kibana
+  become: yes
+  command: systemctl restart kibana.service
+  when: elastic_kibana_install
+  tags:
+      - kibana
+
+- name: Test Kibina
+  become: no
+  uri:
+      url: "http://{{ ansible_host }}:5601/"
+  when: false
+  tags:
+      - kibana
+
+- name: Install X-Pack
+  become: yes
+  shell: "cd /usr/share/elasticsearch && bin/elasticsearch-plugin install x-pack --batch"
+  args:
+      creates: /usr/share/elasticsearch/plugins/x-pack/LICENSE.txt
+  when: elastic_x_pack_install and (elastic_elasticsearch_install or elastic_kibana_install)
+
+# Don't bother fighting it -- Logstash wants Java in a particular spot
+- name: Soft-link java executable
+  become: yes
+  file:
+      src: "{{ jdk_global_jdk_directory }}/bin/java"
+      dest: "/usr/bin/java"
+      state: link
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+- name: Install Logstash
+  become: yes
+  apt:
+      name: logstash
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_logstash_install)
+  tags:
+      - logstash
+
+- name: Install Logstash
+  become: yes
+  yum:
+        name: logstash
+        state: present
+        update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_logstash_install)
+  tags:
+      - logstash
+
+# To test this, you can issue from a reomote machine: logger --server 192.168.1.78 --port 5514 --priority 0  --tag test 'Hello, World!'
+- name: Install Syslog Logstash Configuration
+  become: yes
+  template:
+      src: templates/syslog-to-elasticsearch.conf.j2
+      dest: /etc/logstash/conf.d/syslog-to-elasticsearch.conf
+      mode: 0644
+      backup: yes
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+# To test do: echo '{"version": "1.1","host":"example.org","short_message":"A short message that helps you identify what is going on","full_message":"Backtrace here\n\nmore stuff","level":1,"_user_id":9001,"_some_info":"foo","_some_env_var":"bar"}' | gzip | nc -u -w 1 192.168.1.78 12201
+- name: Install GELF Logstash Configuration
+  become: yes
+  template:
+      src: templates/gelf-to-elasticsearch.conf.j2
+      dest: /etc/logstash/conf.d/gelf-to-elasticsearch.conf
+      mode: 0644
+      backup: yes
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+- name: Install Heartbeat Logstash Configuration
+  become: yes
+  template:
+      src: templates/heartbeat-to-elasticsearch.conf.j2
+      dest: /etc/logstash/conf.d/heartbeat-to-elasticsearch.conf
+      mode: 0644
+      backup: yes
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+- name: Enable Logstash
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable logstash.service
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+- name: Start Logstash
+  become: yes
+  command: systemctl restart logstash.service
+  when: elastic_logstash_install
+  tags:
+      - logstash
+
+- name: Install Filebeat
+  become: yes
+  apt:
+      name: filebeat
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_filebeat_install)
+  tags:
+      - filebeat
+
+- name: Install Filebeat
+  become: yes
+  yum:
+        name: filebeat
+        state: present
+        update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_filebeat_install)
+  tags:
+      - filebeat
+
+- name: Install Custom Filebeat Configuration
+  become: yes
+  template:
+      src: templates/filebeat.yml.j2
+      dest: /etc/filebeat/filebeat.yml
+      mode: 0644
+      backup: yes
+  when: elastic_filebeat_install
+  tags:
+      - filebeat
+
+- name: Enable Filebeat
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable filebeat
+  when: elastic_filebeat_install
+  tags:
+      - filebeat
+
+- name: Start Filebeat
+  become: yes
+  command: systemctl restart filebeat
+  when: elastic_filebeat_install
+  tags:
+      - filebeat
+
+- name: Install Metricbeat
+  become: yes
+  apt:
+      name: metricbeat
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_metricbeat_install)
+  tags:
+      - metricbeat
+
+- name: Install Metricbeat
+  become: yes
+  yum:
+        name: metricbeat
+        state: present
+        update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_metricbeat_install)
+  tags:
+      - metricbeat
+
+- name: Install Custom Metricbeat Configuration
+  become: yes
+  template:
+      src: templates/metricbeat.yml.j2
+      dest: /etc/metricbeat/metricbeat.yml
+      mode: 0644
+      backup: yes
+  when: elastic_metricbeat_install
+  tags:
+      - metricbeat
+
+- name: Enable Metricbeat
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable metricbeat
+  when: elastic_metricbeat_install
+  tags:
+      - metricbeat
+
+- name: Start Metricbeat
+  become: yes
+  command: systemctl restart metricbeat
+  when: elastic_metricbeat_install
+  tags:
+      - metricbeat
+
+- name: Install Packetbeat
+  become: yes
+  apt:
+      name: packetbeat
+      update_cache: yes
+      state: present
+      allow_unauthenticated: yes
+  when: (ansible_distribution == "Ubuntu") and (elastic_packetbeat_install)
+  tags:
+      - packetbeat
+
+- name: Install Packetbeat
+  become: yes
+  yum:
+        name: packetbeat
+        state: present
+        update_cache: yes
+  when: (ansible_distribution == "RedHat") and (elastic_packetbeat_install)
+  tags:
+      - packetbeat
+
+- name: Install Custom Packetbeat Configuration
+  become: yes
+  template:
+      src: templates/packetbeat.yml.j2
+      dest: /etc/packetbeat/packetbeat.yml
+      mode: 0644
+      backup: yes
+  when: elastic_packetbeat_install
+  tags:
+      - packetbeat
+
+- name: Enable Packetbeat
+  become: yes
+  shell: systemctl daemon-reload && systemctl enable packetbeat
+  when: elastic_packetbeat_install
+  tags:
+      - packetbeat
+
+- name: Start Packetbeat
+  become: yes
+  command: systemctl restart packetbeat
+  when: elastic_packetbeat_install
+  tags:
+      - packetbeat
+
+# all beats have the script but you only need to run it once
+# TODO: figure out a way to determine if we need to run the script or not
+- name: Install Beat Dashboards And Indices
+  become: yes
+  command: "./scripts/import_dashboards -es http://127.0.0.1:9200"
+  args:
+      chdir: /usr/share/metricbeat
+  when: elastic_elasticsearch_install and (elastic_metricbeat_install or elastic_filebeat_install or elastic_packetbeat_install)
+  tags:
+      - filebeat
+      - metricbeat
+      - packetbeat
