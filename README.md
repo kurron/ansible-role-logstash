@@ -15,7 +15,7 @@ Role Variables
 * elastic_logstash_syslog_port: 5514
 * elastic_logstash_syslog_time_zone: UTC
 * elastic_logstash_gelf_port: 12201
-* elastic_elasticsearch_host: chamge.me.example.com
+* elastic_elasticsearch_host: change.me.example.com
 * elastic_elasticsearch_port: 9120
 * elastic_stack_version: 5.x
 
